@@ -1,0 +1,5 @@
+{
+  "moblim.command.enabled": "[ML] -> Enabled",
+  "moblim.command.disabled": "[ML] -> Disabled",
+  "moblim.command.set_limit": "[ML] -> Mob limit set to %s"
+}

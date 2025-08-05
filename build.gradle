@@ -1,0 +1,102 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.106'
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+version = mod_version
+group = mod_group_id
+
+repositories {
+    maven { url = "https://plugins.gradle.org/m2/" }
+    maven { url = 'https://maven.neoforged.net/' }
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT'
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+    srcDir generateModMetadata
+}
+
+neoForge.ideSyncTask generateModMetadata
+
+spotless {
+    java {
+        endWithNewline()
+        indentWithTabs()
+        removeUnusedImports()
+        eclipse().configFile('cf/cf.xml')
+        importOrderFile('cf/cu.importorder')
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+tasks.named("build") {
+    dependsOn tasks.named("spotlessApply")
+}
+
+tasks.named("jar") {
+    archiveBaseName.set("${mod_id}")
+    archiveVersion.set("${mod_version}")
+    archiveClassifier.set("neoforge")
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
