@@ -1,5 +1,7 @@
 package net.wheel.moblimiter.handler;
 
+import java.util.List;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,8 +16,9 @@ public class MLHandler {
 
     @SubscribeEvent
     public void onEntityJoinLevel(EntityJoinLevelEvent event) {
-        if (!MLConfig.isEnabled())
+        if (!MLConfig.isMobLimitingEnabled())
             return;
+
         if (!(event.getLevel() instanceof ServerLevel serverLevel))
             return;
 
@@ -24,23 +27,22 @@ public class MLHandler {
             return;
 
         ChunkPos chunkPos = entity.chunkPosition();
-        int[] count = { 0 };
+        int limit = MLConfig.getMobLimit();
+        int count = 0;
 
-        serverLevel.getEntities((Entity) null, entity.getBoundingBox().inflate(16), e -> {
+        List<Entity> nearbyEntities = serverLevel.getEntities(null, entity.getBoundingBox().inflate(16));
+        for (int i = 0, size = nearbyEntities.size(); i < size; i++) {
+            Entity e = nearbyEntities.get(i);
             if (!(e instanceof LivingEntity) || e instanceof Player)
-                return true;
+                continue;
 
             ChunkPos otherChunk = e.chunkPosition();
             if (otherChunk.x == chunkPos.x && otherChunk.z == chunkPos.z) {
-                count[0]++;
-                return count[0] < MLConfig.getMobLimit();
+                if (++count >= limit) {
+                    event.setCanceled(true);
+                    return;
+                }
             }
-
-            return true;
-        });
-
-        if (count[0] >= MLConfig.getMobLimit()) {
-            event.setCanceled(true);
         }
     }
 }

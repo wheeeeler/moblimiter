@@ -1,5 +1,16 @@
 {
   "moblim.command.enabled": "[ML] -> Enabled",
   "moblim.command.disabled": "[ML] -> Disabled",
-  "moblim.command.set_limit": "[ML] -> Mob limit set to %s"
+  "moblim.command.set_limit": "[ML] -> Mob limit set to %s",
+  "moblim.command.moblimit.enabled": "[ML] -> Mob limiting enabled",
+  "moblim.command.moblimit.disabled": "[ML] -> Mob limiting disabled",
+  "moblim.command.mobclear.enabled": "[ML] -> Mob clearing enabled",
+  "moblim.command.mobclear.disabled": "[ML] -> Mob clearing disabled",
+  "moblim.command.moblimit.set": "[ML] -> Mob limit set to %s",
+  "moblim.command.mobclearinterval.set": "[ML] -> Mob clear interval set to %s seconds",
+  "moblim.command.status.moblimiting": "[ML] Mob Limiting: %s",
+  "moblim.command.status.mobclearing": "[ML] Mob Clearing: %s",
+  "moblim.command.status.moblimit": "[ML] Mob Limit: %s",
+  "moblim.command.status.clearinterval": "[ML] Clear Interval: %ss",
+  "moblim.command.forceclear": "[ML] -> Forcing mob cleanup"
 }
