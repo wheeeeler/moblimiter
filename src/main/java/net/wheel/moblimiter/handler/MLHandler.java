@@ -23,7 +23,8 @@ public class MLHandler {
             return;
 
         Entity entity = event.getEntity();
-        if (!(entity instanceof LivingEntity) || entity instanceof Player)
+        if (!(entity instanceof LivingEntity) || entity instanceof Player || MLWhiteList.whiteListed(entity)
+                || entity.hasCustomName())
             return;
 
         ChunkPos chunkPos = entity.chunkPosition();
@@ -33,7 +34,8 @@ public class MLHandler {
         List<Entity> nearbyEntities = serverLevel.getEntities(null, entity.getBoundingBox().inflate(16));
         for (int i = 0, size = nearbyEntities.size(); i < size; i++) {
             Entity e = nearbyEntities.get(i);
-            if (!(e instanceof LivingEntity) || e instanceof Player)
+            if (!(e instanceof LivingEntity) || e instanceof Player || MLWhiteList.whiteListed(e)
+                    || e.hasCustomName())
                 continue;
 
             ChunkPos otherChunk = e.chunkPosition();

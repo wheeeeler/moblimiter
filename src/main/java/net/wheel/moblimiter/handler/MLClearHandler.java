@@ -50,7 +50,8 @@ public class MLClearHandler {
         int removed = 0;
 
         for (Entity entity : level.getEntities().getAll()) {
-            if (!(entity instanceof LivingEntity living) || entity instanceof Player)
+            if (!(entity instanceof LivingEntity living) || entity instanceof Player
+                    || MLWhiteList.whiteListed(entity) || entity.hasCustomName())
                 continue;
 
             chunkMobMap
@@ -80,7 +81,8 @@ public class MLClearHandler {
         COMBINED_MAP.clear();
 
         for (Entity entity : level.getEntities().getAll()) {
-            if (!(entity instanceof LivingEntity living) || entity instanceof Player)
+            if (!(entity instanceof LivingEntity living) || entity instanceof Player
+                    || MLWhiteList.whiteListed(entity) || entity.hasCustomName())
                 continue;
 
             COMBINED_MAP

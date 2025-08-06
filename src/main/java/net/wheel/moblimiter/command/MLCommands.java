@@ -98,9 +98,33 @@ public class MLCommands {
                                 MLClearHandler.forceClear(level);
                             }
                             ctx.getSource().sendSuccess(
-                                    () -> MLColor.parse("&f[&cML&f] -> &aForcing mobcleanp"), false);
+                                    () -> MLColor.parse("&f[&cML&f] -> &aForcing mobcleanup"), false);
                             return 1;
-                        })));
+                        }))
+
+                .then(Commands.literal("whitelist")
+                        .requires(cs -> hasPerm(cs.getPlayer(), PERM_UPDATE))
+
+                        .then(Commands.literal("list")
+                                .executes(ctx -> {
+                                    var list = MLConfig.getWhiteList();
+                                    if (list.isEmpty()) {
+                                        ctx.getSource().sendSuccess(
+                                                () -> MLColor.parse("&f[&cML&f] -> &7Whitelist is empty"),
+                                                false);
+                                    } else {
+                                        ctx.getSource().sendSuccess(
+                                                () -> MLColor.parse("&f[&cML&f] -> &aWhitelisted entries:"),
+                                                false);
+                                        for (String entry : list) {
+                                            ctx.getSource().sendSuccess(
+                                                    () -> MLColor.parse("&f[&cML&f]   - &e" + entry),
+                                                    false);
+                                        }
+                                    }
+                                    return 1;
+
+                                }))));
     }
 
     private boolean hasPerm(ServerPlayer p, String node) {

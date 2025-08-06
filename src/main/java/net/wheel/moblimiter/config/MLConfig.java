@@ -1,8 +1,12 @@
 package net.wheel.moblimiter.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class MLConfig {
+
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.BooleanValue MOB_LIMITING_ENABLED = defineBool("mobLimitingEnabled",
@@ -14,6 +18,10 @@ public class MLConfig {
             "Max mobs allowed in a chunk");
     public static final ModConfigSpec.IntValue CLEAR_INTERVAL = defineInt("clearInterval", 600,
             "Scan interval in seconds for clearing excess mobs in loaded chunks");
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> WHITELIST_ENTITIES = BUILDER
+            .comment("List of whitelisted entities, input modid to whitelist an entire mod or modid:entityname")
+            .defineListAllowEmpty(List.of("whitelist"), List::of, o -> o instanceof String);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -47,6 +55,18 @@ public class MLConfig {
 
     public static void setClearTimer(int value) {
         CLEAR_INTERVAL.set(value);
+    }
+
+    public static List<String> getWhiteList() {
+        List<String> lcase = new ArrayList<>();
+        List<? extends String> raw = WHITELIST_ENTITIES.get();
+        for (int i = 0; i < raw.size(); i++) {
+            String value = raw.get(i);
+            if (value != null) {
+                lcase.add(value.toLowerCase());
+            }
+        }
+        return lcase;
     }
 
     private static ModConfigSpec.BooleanValue defineBool(String name, String comment) {

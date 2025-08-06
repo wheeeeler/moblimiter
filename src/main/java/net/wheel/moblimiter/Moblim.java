@@ -13,13 +13,12 @@ import net.wheel.moblimiter.handler.MLHandler;
 @Mod(Moblim.MODID)
 public class Moblim {
     public static final String MODID = "moblim";
-    public static final String VERSION = "0.2";
+    public static final String VERSION = "0.3";
 
     public Moblim(ModContainer modContainer) {
         NeoForge.EVENT_BUS.register(new MLHandler());
         NeoForge.EVENT_BUS.register(new MLCommands());
         NeoForge.EVENT_BUS.register(new MLClearHandler());
-
         modContainer.registerConfig(ModConfig.Type.COMMON, MLConfig.SPEC);
         MINT();
     }
