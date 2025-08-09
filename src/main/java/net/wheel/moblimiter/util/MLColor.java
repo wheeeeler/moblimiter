@@ -14,7 +14,7 @@ public class MLColor {
             char c = input.charAt(i);
 
             if (c == '&' && i + 1 < len) {
-                if (!buffer.isEmpty()) {
+                if (buffer.length() > 0) {
                     result.append(Component.literal(buffer.toString()).withStyle(current));
                     buffer.setLength(0);
                 }
@@ -30,7 +30,7 @@ public class MLColor {
             }
         }
 
-        if (!buffer.isEmpty()) {
+        if (buffer.length() > 0) {
             result.append(Component.literal(buffer.toString()).withStyle(current));
         }
 

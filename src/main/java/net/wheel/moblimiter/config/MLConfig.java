@@ -1,79 +1,125 @@
 package net.wheel.moblimiter.config;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 
-public class MLConfig {
+public final class MLConfig {
+    private static boolean mobLimitingEnabled = true;
+    private static boolean mobClearingEnabled = true;
+    private static int mobLimit = 10;
+    private static int clearLimit = 10;
+    private static int clearTimer = 300;
+    private static final LinkedHashSet<String> whitelist = new LinkedHashSet<>();
 
-    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    private static final LinkedHashMap<String, Integer> entityStrictSpawn = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, Integer> modStrictSpawn = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, Integer> entityStrictClear = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, Integer> modStrictClear = new LinkedHashMap<>();
 
-    public static final ModConfigSpec.BooleanValue MOB_LIMITING_ENABLED = defineBool("mobLimitingEnabled",
-            "Enable or disable mob limiting on spawn");
-    public static final ModConfigSpec.BooleanValue MOB_CLEARING_ENABLED = defineBool("mobClearingEnabled",
-            "Enable or disable background mob clearing task");
-
-    public static final ModConfigSpec.IntValue MOB_LIMIT = defineInt("mobLimit", 10,
-            "Max mobs allowed in a chunk");
-    public static final ModConfigSpec.IntValue CLEAR_INTERVAL = defineInt("clearInterval", 600,
-            "Scan interval in seconds for clearing excess mobs in loaded chunks");
-
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> WHITELIST_ENTITIES = BUILDER
-            .comment("List of whitelisted entities, input modid to whitelist an entire mod or modid:entityname")
-            .defineListAllowEmpty(List.of("whitelist"), List::of, o -> o instanceof String);
-
-    public static final ModConfigSpec SPEC = BUILDER.build();
+    private static final LinkedHashSet<String> feedbackEnabledPlayers = new LinkedHashSet<>();
 
     public static boolean isMobLimitingEnabled() {
-        return MOB_LIMITING_ENABLED.get();
+        return mobLimitingEnabled;
     }
 
     public static boolean isMobClearingEnabled() {
-        return MOB_CLEARING_ENABLED.get();
+        return mobClearingEnabled;
     }
 
     public static int getMobLimit() {
-        return MOB_LIMIT.get();
+        return mobLimit;
+    }
+
+    public static int getClearLimit() {
+        return clearLimit;
     }
 
     public static int getClearTimer() {
-        return CLEAR_INTERVAL.get();
+        return clearTimer;
     }
 
-    public static void enableMobLimiting(boolean value) {
-        MOB_LIMITING_ENABLED.set(value);
+    public static void enableMobLimiting(boolean v) {
+        mobLimitingEnabled = v;
     }
 
-    public static void enableMobClearing(boolean value) {
-        MOB_CLEARING_ENABLED.set(value);
+    public static void enableMobClearing(boolean v) {
+        mobClearingEnabled = v;
     }
 
-    public static void setMobLimit(int value) {
-        MOB_LIMIT.set(value);
+    public static void setMobLimit(int v) {
+        mobLimit = v;
     }
 
-    public static void setClearTimer(int value) {
-        CLEAR_INTERVAL.set(value);
+    public static void setClearLimit(int v) {
+        clearLimit = v;
     }
 
-    public static List<String> getWhiteList() {
-        List<String> lcase = new ArrayList<>();
-        List<? extends String> raw = WHITELIST_ENTITIES.get();
-        for (int i = 0; i < raw.size(); i++) {
-            String value = raw.get(i);
-            if (value != null) {
-                lcase.add(value.toLowerCase());
-            }
+    public static void setClearTimer(int v) {
+        clearTimer = v;
+    }
+
+    public static Set<String> getWhiteList() {
+        return whitelist;
+    }
+
+    public static Map<String, Integer> getEntityStrictSpawn() {
+        return entityStrictSpawn;
+    }
+
+    public static Map<String, Integer> getModStrictSpawn() {
+        return modStrictSpawn;
+    }
+
+    public static Map<String, Integer> getEntityStrictClear() {
+        return entityStrictClear;
+    }
+
+    public static Map<String, Integer> getModStrictClear() {
+        return modStrictClear;
+    }
+
+    public static int effectiveSpawnLimit(EntityType<?> type) {
+        ResourceLocation id = EntityType.getKey(type);
+        Integer byEntity = entityStrictSpawn.get(id.toString().toLowerCase());
+        if (byEntity != null)
+            return byEntity;
+        Integer byMod = modStrictSpawn.get(id.getNamespace().toLowerCase());
+        if (byMod != null)
+            return byMod;
+        return mobLimit;
+    }
+
+    public static int effectiveClearLimit(EntityType<?> type) {
+        ResourceLocation id = EntityType.getKey(type);
+        Integer byEntity = entityStrictClear.get(id.toString().toLowerCase());
+        if (byEntity != null)
+            return byEntity;
+        Integer byMod = modStrictClear.get(id.getNamespace().toLowerCase());
+        if (byMod != null)
+            return byMod;
+        return clearLimit;
+    }
+
+    public static Set<String> getFeedbackEnabledPlayers() {
+        return feedbackEnabledPlayers;
+    }
+
+    public static boolean isFeedbackEnabled(UUID uuid) {
+        return feedbackEnabledPlayers.contains(uuid.toString().toLowerCase());
+    }
+
+    public static void setFeedback(UUID uuid, boolean enabled) {
+        String key = uuid.toString().toLowerCase();
+        if (enabled) {
+            feedbackEnabledPlayers.add(key);
+        } else {
+            feedbackEnabledPlayers.remove(key);
         }
-        return lcase;
-    }
-
-    private static ModConfigSpec.BooleanValue defineBool(String name, String comment) {
-        return BUILDER.comment(comment).define(name, true);
-    }
-
-    private static ModConfigSpec.IntValue defineInt(String name, int defaultValue, String comment) {
-        return BUILDER.comment(comment).defineInRange(name, defaultValue, 1, Integer.MAX_VALUE);
     }
 }
