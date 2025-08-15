@@ -11,6 +11,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -25,9 +27,9 @@ import net.wheel.moblimiter.util.Messages;
 public class MLClearHandler {
     private int TICK_COUNT = 0;
     private static final int CHUNK_INIT_CAP = 16;
-    private static final Object2ObjectOpenHashMap<ChunkPos, ObjectArrayList<LivingEntity>> COMBINED_MAP = new Object2ObjectOpenHashMap<>(
+    private static final Object2ObjectOpenHashMap<ChunkPos, ObjectArrayList<Entity>> COMBINED_MAP = new Object2ObjectOpenHashMap<>(
             256);
-    private static final Comparator<LivingEntity> Y_SORT_COMP = Comparator.comparingDouble(LivingEntity::getY);
+    private static final Comparator<Entity> Y_SORT_COMP = Comparator.comparingDouble(Entity::getY);
 
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Post event) {
@@ -58,35 +60,34 @@ public class MLClearHandler {
         COMBINED_MAP.clear();
 
         for (Entity entity : level.getEntities().getAll()) {
-            if (!(entity instanceof LivingEntity living) || entity instanceof Player
-                    || MLWhiteListHandler.whiteListed(entity) || entity.hasCustomName())
+            if (!isManaged(entity))
                 continue;
 
             COMBINED_MAP
-                    .computeIfAbsent(living.chunkPosition(), k -> new ObjectArrayList<>(CHUNK_INIT_CAP))
-                    .add(living);
+                    .computeIfAbsent(entity.chunkPosition(), k -> new ObjectArrayList<>(CHUNK_INIT_CAP))
+                    .add(entity);
         }
 
-        for (ObjectArrayList<LivingEntity> mobList : COMBINED_MAP.values()) {
-            if (mobList.isEmpty())
+        for (ObjectArrayList<Entity> listInChunk : COMBINED_MAP.values()) {
+            if (listInChunk.isEmpty())
                 continue;
-            mobList.sort(Y_SORT_COMP);
+            listInChunk.sort(Y_SORT_COMP);
 
-            Map<String, ObjectArrayList<LivingEntity>> byEntity = new HashMap<>();
-            Map<String, ObjectArrayList<LivingEntity>> byMod = new HashMap<>();
+            Map<String, ObjectArrayList<Entity>> byEntity = new HashMap<>();
+            Map<String, ObjectArrayList<Entity>> byMod = new HashMap<>();
 
-            for (LivingEntity le : mobList) {
-                String eid = EntityType.getKey(le.getType()).toString().toLowerCase();
-                String ns = EntityType.getKey(le.getType()).getNamespace().toLowerCase();
-                byEntity.computeIfAbsent(eid, k -> new ObjectArrayList<>()).add(le);
-                byMod.computeIfAbsent(ns, k -> new ObjectArrayList<>()).add(le);
+            for (Entity e : listInChunk) {
+                String eid = EntityType.getKey(e.getType()).toString().toLowerCase();
+                String ns = EntityType.getKey(e.getType()).getNamespace().toLowerCase();
+                byEntity.computeIfAbsent(eid, k -> new ObjectArrayList<>()).add(e);
+                byMod.computeIfAbsent(ns, k -> new ObjectArrayList<>()).add(e);
             }
 
-            for (Map.Entry<String, ObjectArrayList<LivingEntity>> e : byEntity.entrySet()) {
+            for (Map.Entry<String, ObjectArrayList<Entity>> e : byEntity.entrySet()) {
                 Integer lim = MLConfig.getEntityStrictClear().get(e.getKey());
                 if (lim == null)
                     continue;
-                ObjectArrayList<LivingEntity> list = e.getValue();
+                ObjectArrayList<Entity> list = e.getValue();
                 if (list.size() > lim) {
                     for (int i = lim, s = list.size(); i < s; i++) {
                         list.get(i).discard();
@@ -95,11 +96,11 @@ public class MLClearHandler {
                 }
             }
 
-            for (Map.Entry<String, ObjectArrayList<LivingEntity>> e : byMod.entrySet()) {
+            for (Map.Entry<String, ObjectArrayList<Entity>> e : byMod.entrySet()) {
                 Integer lim = MLConfig.getModStrictClear().get(e.getKey());
                 if (lim == null)
                     continue;
-                ObjectArrayList<LivingEntity> list = e.getValue();
+                ObjectArrayList<Entity> list = e.getValue();
                 int survivors = 0;
                 for (int i = 0, s = list.size(); i < s; i++) {
                     if (survivors < lim) {
@@ -114,25 +115,37 @@ public class MLClearHandler {
             int global = MLConfig.getClearLimit();
             if (global >= 1) {
                 int alive = 0;
-                for (int i = 0, s = mobList.size(); i < s; i++) {
-                    LivingEntity le = mobList.get(i);
-                    if (le.isRemoved())
+                for (int i = 0, s = listInChunk.size(); i < s; i++) {
+                    Entity e = listInChunk.get(i);
+                    if (e.isRemoved())
                         continue;
                     if (alive < global) {
                         alive++;
                     } else {
-                        le.discard();
+                        e.discard();
                         removed++;
                     }
                 }
             }
         }
 
-        for (ObjectArrayList<LivingEntity> list : COMBINED_MAP.values()) {
+        for (ObjectArrayList<Entity> list : COMBINED_MAP.values()) {
             list.clear();
         }
 
         return removed;
+    }
+
+    private static boolean isManaged(Entity e) {
+        if (e instanceof Player)
+            return false;
+        if (MLWhiteListHandler.whiteListed(e) || e.hasCustomName())
+            return false;
+        if (e instanceof LivingEntity)
+            return true;
+        if (e instanceof Projectile || e instanceof FireworkRocketEntity)
+            return true;
+        return false;
     }
 
     private static void sendClearMsg(ServerLevel level, int removed) {

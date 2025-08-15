@@ -19,15 +19,20 @@ public final class StatusCommand {
                     var src = ctx.getSource();
                     String enabled = Messages.text("status.enabled");
                     String disabled = Messages.text("status.disabled");
-                    src.sendSuccess(() -> MLColor.parse(Messages.text("status.moblimiting",
+                    src.sendSuccess(() -> MLColor.parse(Messages.text(
+                            "status.entitylimiting",
                             MLConfig.isMobLimitingEnabled() ? enabled : disabled)), false);
-                    src.sendSuccess(() -> MLColor.parse(Messages.text("status.mobclearing",
+                    src.sendSuccess(() -> MLColor.parse(Messages.text(
+                            "status.entityclearing",
                             MLConfig.isMobClearingEnabled() ? enabled : disabled)), false);
-                    src.sendSuccess(() -> MLColor.parse(Messages.text("status.moblimit",
+                    src.sendSuccess(() -> MLColor.parse(Messages.text(
+                            "status.entitylimit",
                             MLConfig.getMobLimit())), false);
-                    src.sendSuccess(() -> MLColor.parse(Messages.text("status.clearlimit",
+                    src.sendSuccess(() -> MLColor.parse(Messages.text(
+                            "status.clearlimit",
                             MLConfig.getClearLimit())), false);
-                    src.sendSuccess(() -> MLColor.parse(Messages.text("status.clearinterval",
+                    src.sendSuccess(() -> MLColor.parse(Messages.text(
+                            "status.clearinterval",
                             MLConfig.getClearTimer())), false);
                     return 1;
                 }));

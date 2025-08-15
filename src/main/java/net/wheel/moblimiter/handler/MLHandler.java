@@ -7,6 +7,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -23,8 +25,7 @@ public class MLHandler {
             return;
 
         Entity entity = event.getEntity();
-        if (!(entity instanceof LivingEntity) || entity instanceof Player || MLWhiteListHandler.whiteListed(entity)
-                || entity.hasCustomName())
+        if (!isManaged(entity))
             return;
 
         ChunkPos chunkPos = entity.chunkPosition();
@@ -35,8 +36,7 @@ public class MLHandler {
         List<Entity> nearby = serverLevel.getEntities(null, entity.getBoundingBox().inflate(16));
         for (int i = 0, size = nearby.size(); i < size; i++) {
             Entity e = nearby.get(i);
-            if (!(e instanceof LivingEntity) || e instanceof Player || MLWhiteListHandler.whiteListed(e)
-                    || e.hasCustomName())
+            if (!isManaged(e))
                 continue;
             ChunkPos other = e.chunkPosition();
             if (other.x != chunkPos.x || other.z != chunkPos.z)
@@ -49,6 +49,18 @@ public class MLHandler {
                 }
             }
         }
+    }
+
+    private static boolean isManaged(Entity e) {
+        if (e instanceof Player)
+            return false;
+        if (MLWhiteListHandler.whiteListed(e) || e.hasCustomName())
+            return false;
+        if (e instanceof LivingEntity)
+            return true;
+        if (e instanceof Projectile || e instanceof FireworkRocketEntity)
+            return true;
+        return false;
     }
 
     private boolean matchesSpawnGroup(EntityType<?> target, EntityType<?> candidate) {

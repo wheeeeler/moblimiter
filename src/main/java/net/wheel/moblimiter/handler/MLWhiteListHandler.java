@@ -9,7 +9,9 @@ import net.wheel.moblimiter.config.MLConfig;
 public final class MLWhiteListHandler {
     public static boolean whiteListed(Entity entity) {
         ResourceLocation id = EntityType.getKey(entity.getType());
-        String key = id.toString().toLowerCase();
-        return MLConfig.getWhiteList().contains(key);
+        String full = id.toString().toLowerCase();
+        String ns = id.getNamespace().toLowerCase();
+        var wl = MLConfig.getWhiteList();
+        return wl.contains(full) || wl.contains(ns);
     }
 }

@@ -34,5 +34,6 @@ public final class CommandSrc {
         ListEntitiesCommand.regCMD(root, perm);
         AuthorCommand.regCMD(root, perm);
         FeedbackCommand.regCMD(root);
+        HelpCommand.regCMD(root);
     }
 }
